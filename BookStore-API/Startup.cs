@@ -92,7 +92,7 @@ namespace BookStore_API
             //access API
             app.UseCors("CorsPolicy");
 
-            //app.UseRouting();
+            app.UseRouting();
 
             app.UseAuthentication();
             app.UseAuthorization();
