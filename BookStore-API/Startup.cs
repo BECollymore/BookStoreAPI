@@ -17,6 +17,8 @@ using System.Reflection;
 using System.IO;
 using BookStore_API.Contracts;
 using BookStore_API.Services;
+using AutoMapper;
+using BookStore_API.Mappings;
 
 namespace BookStore_API
 {
@@ -33,16 +35,18 @@ namespace BookStore_API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlite(
+                options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-            services.AddCors( o => {
+            services.AddCors(o => {
                 o.AddPolicy("CorsPolicy",
                     builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
             });
+
+            services.AddAutoMapper(typeof(Maps));
 
             services.AddSwaggerGen(c =>
             {
@@ -59,6 +63,7 @@ namespace BookStore_API
             });
 
             services.AddSingleton<ILoggerService, LoggerService>();
+            services.AddScoped<IAuthorRepository, AuthorRepository>();
             services.AddControllers();
         }
 
@@ -84,7 +89,7 @@ namespace BookStore_API
             });
 
             app.UseHttpsRedirection();
-            //app.UseStaticFiles();
+            app.UseStaticFiles();
 
             //use cors policy created in ConfigureServices method above
             // Cors (cross origins resource sharing) allow or gives rights
