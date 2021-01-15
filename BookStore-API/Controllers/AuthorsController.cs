@@ -41,6 +41,8 @@ namespace BookStore_API.Controllers
         /// </summary>
         /// <returns>list of all authors</returns>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAuthors()
         {
             try
@@ -54,25 +56,95 @@ namespace BookStore_API.Controllers
             }
             catch(Exception e)
             {
-                _logger.LogError($"{e.Message} - {e.InnerException}");
-                // i.e internal server error message
-                return StatusCode(500,"Something went wrong. Please contact API administrator."); 
+                return InternalError($"{e.Message} - {e.InnerException}");
             }
            
         }
-
+        /// <summary>
+        /// Gets an author by id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>An author's record</returns>
         // GET api/values/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAuthor(int id)
         {
-            return "";
+            try
+            {
+                _logger.LogInfo($"Attempting to get an author by Id:{id}");
+                var author = await _authorRepository.FindById(id);
+                if(author == null)
+                {
+                    _logger.LogWarn($"Author with Id:{id} was not found");
+                    NotFound();
+                }
+                var response = _mapper.Map<AuthorDTO>(author);
+                return Ok(response);
+
+            }
+            catch (Exception e)
+            {
+               return InternalError($"{e.Message} - {e.InnerException}");
+               
+            }
+           
+        }
+        /// <summary>
+        /// Creates an Author
+        /// </summary>
+        /// <param name="authorDTO"></param>
+        /// <returns></returns>
+
+        
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Create([FromBody] AuthorCreateDTO authorDTO)
+        {
+            try
+            {
+                _logger.LogInfo("Attempting to create author");
+                if (authorDTO == null)
+                {
+                    _logger.LogWarn("Author must have required fields and not empty");
+                    return BadRequest(ModelState);
+                }
+                if(!ModelState.IsValid)
+                {
+                    InternalError("Data was not complete");
+                    return BadRequest(ModelState);
+
+                }
+                
+                var author = _mapper.Map<Author>(authorDTO);
+                var IsSuccessful = await _authorRepository.Create(author);
+                if(!IsSuccessful)
+                {
+                   return InternalError("Error creating author");
+                }
+
+                _logger.LogInfo("Author created successfully");
+                return Created("Create", new { author });
+            }
+            catch (Exception e)
+            {
+                return InternalError($"{e.Message} - {e.InnerException}");
+
+            }
+
+        }
+        
+        private ObjectResult InternalError(string message)
+        {
+            _logger.LogError(message);
+            // i.e internal server error message
+            return StatusCode(500, "Something went wrong. Please contact API administrator.");
         }
 
-        // POST api/values
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
 
         // PUT api/values/5
         [HttpPut("{id}")]

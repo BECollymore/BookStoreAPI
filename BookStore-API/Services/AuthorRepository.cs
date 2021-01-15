@@ -4,17 +4,12 @@ using System.Threading.Tasks;
 using BookStore_API.Contracts;
 using BookStore_API.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Storage;
-
 
 namespace BookStore_API.Services
 {
     public class AuthorRepository: IAuthorRepository
     {
         private readonly ApplicationDbContext _db;
-        private readonly ApplicationDbContext db1;
-
         public AuthorRepository(ApplicationDbContext db)
         {
             _db = db;
