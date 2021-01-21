@@ -48,17 +48,17 @@ namespace BookStore_API.Controllers
             try
             {
                 _logger.LogInfo("Attempting Get All Authors request");
-                var authors =  await _authorRepository.FindAll();
+                var authors = await _authorRepository.FindAll();
                 var response = _mapper.Map<IList<AuthorDTO>>(authors);
                 _logger.LogInfo("Sucesfully got all Authors");
                 return Ok(response);
-                
+
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return InternalError($"{e.Message} - {e.InnerException}");
             }
-           
+
         }
         /// <summary>
         /// Gets an author by id
@@ -76,7 +76,7 @@ namespace BookStore_API.Controllers
             {
                 _logger.LogInfo($"Attempting to get an author by Id:{id}");
                 var author = await _authorRepository.FindById(id);
-                if(author == null)
+                if (author == null)
                 {
                     _logger.LogWarn($"Author with Id:{id} was not found");
                     NotFound();
@@ -87,18 +87,17 @@ namespace BookStore_API.Controllers
             }
             catch (Exception e)
             {
-               return InternalError($"{e.Message} - {e.InnerException}");
-               
+                return InternalError($"{e.Message} - {e.InnerException}");
+
             }
-           
+
         }
+
         /// <summary>
         /// Creates an Author
         /// </summary>
         /// <param name="authorDTO"></param>
         /// <returns></returns>
-
-        
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -113,18 +112,18 @@ namespace BookStore_API.Controllers
                     _logger.LogWarn("Author must have required fields and not empty");
                     return BadRequest(ModelState);
                 }
-                if(!ModelState.IsValid)
+                if (!ModelState.IsValid)
                 {
                     InternalError("Data was not complete");
                     return BadRequest(ModelState);
 
                 }
-                
+
                 var author = _mapper.Map<Author>(authorDTO);
                 var IsSuccessful = await _authorRepository.Create(author);
-                if(!IsSuccessful)
+                if (!IsSuccessful)
                 {
-                   return InternalError("Error creating author");
+                    return InternalError("Error creating author");
                 }
 
                 _logger.LogInfo("Author created successfully");
@@ -137,7 +136,7 @@ namespace BookStore_API.Controllers
             }
 
         }
-        
+
         private ObjectResult InternalError(string message)
         {
             _logger.LogError(message);
@@ -145,17 +144,87 @@ namespace BookStore_API.Controllers
             return StatusCode(500, "Something went wrong. Please contact API administrator.");
         }
 
-
-        // PUT api/values/5
+        /// <summary>
+        /// Updates an Author
+        /// </summary>
+        /// <param name="AuthorUpdateDTO"></param>
+        /// <returns></returns>
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Update(int id,[FromBody] AuthorUpdateDTO authorDTO)
         {
+            try
+            {
+                _logger.LogInfo("Attempting to update author");
+                if (id < 1 || authorDTO == null || id !=authorDTO.Id)
+                {
+                    _logger.LogWarn("Author must have required fields and not empty");
+                    return BadRequest();
+                }
+                if (!ModelState.IsValid)
+                {
+                    InternalError("Data was not complete");
+                    return BadRequest(ModelState);
+
+                }
+
+                var author = _mapper.Map<Author>(authorDTO);
+                var IsSuccessful = await _authorRepository.Update(author);
+                if(!IsSuccessful)
+                {
+                    return InternalError("Error updating author data");
+                }
+                _logger.LogInfo($"Author with id:{author.Id} was created successfully");
+                return NoContent();
+
+            }
+            catch (Exception e)
+            {
+               return InternalError($"{e.Message} - {e.InnerException}");
+            }
+
         }
 
+        /// <summary>
+        /// Deletes an author
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         // DELETE api/values/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
+            try
+            {
+                _logger.LogInfo("Attempting to delete author");
+                if (id < 1)
+                {
+                    return BadRequest();
+                }
+
+                var author = await _authorRepository.FindById(id);
+                if(author == null)
+                {
+                    _logger.LogInfo("author was not found for deleteing");
+                    return NotFound();
+                }
+                var IsSuccessful = await _authorRepository.Delete(author);
+                if(!IsSuccessful)
+                {
+                    _logger.LogInfo("attempt to delete author failed");
+                    return InternalError("Error deleting author");
+
+                }
+                _logger.LogInfo("Successfully deleted author");
+                return NoContent();
+
+            }
+            catch (Exception e)
+            {
+                return InternalError($"{e.Message} - {e.InnerException}");
+            }
         }
     }
 }
