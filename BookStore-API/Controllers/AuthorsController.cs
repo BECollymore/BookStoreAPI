@@ -169,6 +169,12 @@ namespace BookStore_API.Controllers
                     return BadRequest(ModelState);
 
                 }
+                var isexist = await _authorRepository.isExists(id);
+                if(!isexist)
+                {
+                    _logger.LogInfo("Author was not found in Database");
+                    return NotFound();
+                }
 
                 var author = _mapper.Map<Author>(authorDTO);
                 var IsSuccessful = await _authorRepository.Update(author);
@@ -203,13 +209,14 @@ namespace BookStore_API.Controllers
                 {
                     return BadRequest();
                 }
-
-                var author = await _authorRepository.FindById(id);
-                if(author == null)
+                var isexist = await _authorRepository.isExists(id);
+                if (!isexist)
                 {
-                    _logger.LogInfo("author was not found for deleteing");
+                    _logger.LogInfo("Author was not found in Database");
                     return NotFound();
                 }
+
+                var author = await _authorRepository.FindById(id);
                 var IsSuccessful = await _authorRepository.Delete(author);
                 if(!IsSuccessful)
                 {
