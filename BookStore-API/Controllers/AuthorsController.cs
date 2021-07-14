@@ -7,6 +7,7 @@ using BookStore_API.Contracts;
 using BookStore_API.Data;
 using BookStore_API.DTOs;
 using BookStore_API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,6 +19,7 @@ namespace BookStore_API.Controllers
     /// endpoint used to interact with authors in the bookstore database
     /// </summary>
     [Route("api/[controller]")]
+    [Authorize] //global authorize, so only authorized users can use API
     [ApiController]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public class AuthorsController : Controller
@@ -41,6 +43,7 @@ namespace BookStore_API.Controllers
         /// </summary>
         /// <returns>list of all authors</returns>
         [HttpGet]
+        [Authorize(Roles = "Administrator, Customer")] 
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAuthors()
@@ -68,6 +71,7 @@ namespace BookStore_API.Controllers
         /// <returns>An author's record</returns>
         // GET api/values/5
         [HttpGet("{id}")]
+        [Authorize(Roles = "Administrator, Customer")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -101,6 +105,7 @@ namespace BookStore_API.Controllers
         /// <param name="authorDTO"></param>
         /// <returns></returns>
         [HttpPost]
+        [Authorize(Roles ="Administrator")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -161,6 +166,7 @@ namespace BookStore_API.Controllers
         /// <param name="authorupdateDTO"></param>
         /// <returns></returns>
         [HttpPut("{id}")]
+        [Authorize(Roles = "Administrator")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -212,6 +218,7 @@ namespace BookStore_API.Controllers
         /// <returns></returns>
         // DELETE api/values/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Administrator")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
